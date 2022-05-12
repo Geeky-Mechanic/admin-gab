@@ -1,0 +1,20 @@
+{
+  "name": "admin-gab",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "svelte-kit dev --host",
+    "build": "svelte-kit build",
+    "package": "svelte-kit package",
+    "preview": "svelte-kit preview",
+    "prepare": "svelte-kit sync"
+  },
+  "devDependencies": {
+    "@fullcalendar/common": "^5.11.0",
+    "@fullcalendar/core": "^5.11.0",
+    "@sveltejs/adapter-auto": "next",
+    "@sveltejs/kit": "next",
+    "svelte": "^3.44.0",
+    "svelte-fullcalendar": "^2.0.0-beta.0"
+  },
+  "type": "module"
+}
