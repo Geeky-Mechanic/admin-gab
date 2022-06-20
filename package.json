@@ -21,6 +21,7 @@
   },
   "type": "module",
   "dependencies": {
-    "svelte-frappe-charts": "^1.9.2"
+    "svelte-frappe-charts": "^1.9.2",
+    "svelte-simple-datatables": "^0.2.3"
   }
 }

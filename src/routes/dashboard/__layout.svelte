@@ -12,6 +12,7 @@
 	export let pageUrl;
 
 	let items = [
+		{name: "Dashboard", ref: "dashboard"},
 		{ name: "Bookings", ref: "dashboard/bookings" },
 		{ name: "Complaints", ref: "dashboard/contact" },
 		{ name: "Past Bookings", ref: "dashboard/pastbookings" },

@@ -1,6 +1,7 @@
-import { get } from 'svelte/store';
+/* import { get } from 'svelte/store';
 import { credentials } from './stores/login';
 export async function handle({ event, resolve }) {
+    const headers = event.request.headers;
     if (event.url.pathname !== ('/login')) {
         const token = get(credentials.accessToken);
         const res = await fetch(`${import.meta.env.VITE_API_URL}auth/verifytoken`, {
@@ -12,7 +13,6 @@ export async function handle({ event, resolve }) {
         });
         if (res.ok) {
             const response = await resolve(event);
-            console.log(response);
             return response;
         }else {
             return new Response(null, {
@@ -26,4 +26,4 @@ export async function handle({ event, resolve }) {
         const response = await resolve(event);
         return response;
     }
-};
+}; */

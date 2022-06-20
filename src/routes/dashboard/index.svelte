@@ -1,41 +1,19 @@
-<script context="module">
-  import { credentials } from "../../stores/login";
-  import { get } from "svelte/store";
-  export async function load({ fetch }) {
-    const date = new Date();
-    const token = get(credentials);
-    const res = await fetch(`${import.meta.env.VITE_API_URL}book/stats`, {
-      headers: {
-        "Content-Type": "application/json",
-        token: `Bearer ${token.accessToken}`,
-        currDate: JSON.stringify(date),
-      },
-    });
-    const data = await res.json();
-    if (res.ok) {
-      return {
-        props: {
-          data,
-        },
-      };
-    }
-
-    return {
-      status: res.status,
-      error: new Error("WTF"),
-    };
-  }
-</script>
-
 <script>
   import Chart from "svelte-frappe-charts";
   import InfoCard from "$lib/InfoCard.svelte";
-  export let data;
-  const { upcomingBookings, completedBookings, lastMonth, thisMonth } = data;
-  const nbrOfCompleted = completedBookings.length;
-  const nbrUpcoming = upcomingBookings.length;
-  const nbrCompletedThisMonth = thisMonth.length;
-  const nbrCompletedLastMonth = lastMonth.length;
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+
+  const numPerMonth = [];
+
+  let nbrOfCompleted;
+  let nbrUpcoming;
+  let nbrCompletedThisMonth;
+  let nbrCompletedLastMonth;
+  let nbrMissed;
+  let nbrUnconfirmed;
+
+  let chartData;
 
   const months = [
     "Jan",
@@ -43,19 +21,7 @@
     "Mar",
     "Apr",
     "May",
-    "Juin",
-    "July",
-    "Aug",
-    "Sept",
-    "Oct",
-    "Nov",
-    "Dec",
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Juin",
+    "June",
     "July",
     "Aug",
     "Sept",
@@ -64,89 +30,154 @@
     "Dec",
   ];
 
-  const currDate = new Date();
-  const currYear = currDate.getFullYear();
-  const currMonth = currDate.getMonth();
+  onMount(async () => {
+    const numRes = await fetch(
+      `${import.meta.env.VITE_API_URL}book/stats/number`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          token: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+      }
+    );
 
-  const chartMonths = months.filter((month, i)=> {
-    return (i >= currMonth && i < currMonth + 12);
-  });
+    const calendarRes = await fetch(
+      `${import.meta.env.VITE_API_URL}book/stats/past`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          token: `Bearer ${sessionStorage.getItem("token")}`,
+          projection: JSON.stringify({ begHour: 1, completed: 1 }),
+        },
+      }
+    );
 
-  const ytdBookings = completedBookings.map((b)=> {
-    const bDate = new Date(b.begHour);/* beginning date of each completed booking */
-    const tDate = new Date();/* todays date */
-    tDate.setFullYear(currDate.getFullYear() - 1);/* sets year to last year */
-    if(bDate.getTime() >= tDate.getTime() && bDate.getTime() < currDate.getTime()){/* returns bookings between last year and this year */
-      return b.begHour;
+    if (
+      numRes.status === 403 ||
+      numRes.status === 401 ||
+      calendarRes.status === 403 ||
+      calendarRes.status === 401
+    ) {
+      goto("/login");
+    }
+
+    const calendarData = await calendarRes.json();
+    const numData = await numRes.json();
+    nbrOfCompleted = numData.completedBookings;
+    nbrUpcoming = numData.upcomingBookings;
+    nbrCompletedThisMonth = numData.completedThisMonth;
+    nbrCompletedLastMonth = numData.completedLastMonth;
+    nbrMissed = numData.missed;
+    nbrUnconfirmed = numData.unconfirmed;
+
+    const monthNumbers = calendarData.completedBookings.map((b, i) => {
+      const date = new Date(b.begHour);
+      return date.getMonth();
+    });
+
+    monthNumbers.sort((a, b) => a - b);
+
+    for (let i = 0; i < 12; i++) {
+      const firstIndex = monthNumbers.indexOf(i);
+      const lastIndex = monthNumbers.lastIndexOf(i);
+      if (firstIndex === -1) {
+        numPerMonth.push(0);
+      } else {
+        numPerMonth.push(lastIndex - firstIndex + 1);
+      }
+    }
+
+    chartData = {
+      labels: months,
+      datasets: [
+        {
+          values: numPerMonth,
+        },
+      ],
     };
   });
 
-  const monthNumbers = ytdBookings.map((b, i)=> {
-    const date = new Date(b)
-    return date.getMonth();
-  });
+  /*   const currDate = new Date();
+  const currYear = currDate.getFullYear();
+  const currMonth = currDate.getMonth();
 
-  monthNumbers.sort((a, b)=> a - b);
-  const numPerMonth = [];
-
-  for(let i = 0 ; i < 12; i++){
-    const firstIndex = monthNumbers.indexOf(i);
-    const lastIndex = monthNumbers.lastIndexOf(i);
-    if(firstIndex === -1){
-      numPerMonth.push(0);
-    } else {
-      numPerMonth.push((lastIndex - firstIndex) + 1)
+  const ytdBookings = completedBookings.map((b) => {
+    const bDate = new Date(
+      b.begHour
+    ); // beginning date of each completed booking
+    const tDate = new Date(); // todays date 
+    if (bDate.getFullYear() === tDate.getFullYear()) {
+      // returns bookings between last year and this year 
+      return b.begHour;
     }
-  };
-
-  let chartData = {
-    labels: chartMonths,
-    datasets: [
-      {
-        values: numPerMonth,
-      },
-    ],
-  };
+  }); */
 </script>
 
 <main>
-  <div class="card-container">
-    <div class="card-separator">
+  {#if (nbrOfCompleted || nbrUpcoming || nbrCompletedThisMonth || nbrCompletedLastMonth || nbrMissed || nbrUnconfirmed) && chartData}
+    <div class="card-container">
+      <div class="card-separator">
+        <InfoCard
+          title="Completed bookings"
+          positive
+          num={nbrOfCompleted}
+          content={" completed up to date"}
+        />
+        <InfoCard
+          title="Upcoming bookings"
+          num={nbrUpcoming}
+          positive={nbrUpcoming > 0}
+          content={nbrUpcoming > 0
+            ? " bookings upcoming"
+            : "You have no upcoming bookings"}
+        />
+      </div>
+      <div class="card-separator">
+        <InfoCard
+          title="Bookings completed last month"
+          num={nbrCompletedLastMonth}
+          positive={nbrCompletedLastMonth > 0}
+          content={nbrCompletedLastMonth > 0
+            ? " completed"
+            : "You have no completed bookings last month"}
+        />
+        <InfoCard
+          title="Bookings completed this month"
+          num={nbrCompletedThisMonth}
+          positive={nbrCompletedThisMonth > nbrCompletedLastMonth}
+          content={nbrCompletedThisMonth > 0
+            ? " completed"
+            : "You have no completed bookings this month"}
+        />
+      </div>
+    </div>
+    <div class="important-card">
       <InfoCard
-        title="Completed bookings"
-        positive
-        num={nbrOfCompleted}
-        content={" completed up to date"}
-      />
-      <InfoCard
-        title="Upcoming bookings"
-        num={nbrUpcoming > 0 ? nbrUpcoming : ""}
-        positive={nbrUpcoming > 0}
-        content={nbrUpcoming > 0
-          ? " bookings upcoming"
-          : "You have no upcoming bookings"}
+        title="Awaiting confirmation"
+        num={nbrUnconfirmed}
+        positive={nbrUnconfirmed === 0}
+        content={nbrUnconfirmed === 0
+          ? "No bookings to confirm"
+          : "bookings to confirm"}
       />
     </div>
-    <div class="card-separator">
+    <div class="important-card">
       <InfoCard
-        title="Bookings completed last month"
-        num={nbrCompletedLastMonth > 0 ? nbrCompletedLastMonth : ""}
-        positive={nbrCompletedLastMonth > 0}
-        content={nbrCompletedLastMonth > 0
-          ? " completed"
-          : "You have no completed bookings last month"}
-      />
-      <InfoCard
-        title="Bookings completed this month"
-        num={nbrCompletedThisMonth > 0 ? nbrCompletedThisMonth : ""}
-        positive={nbrCompletedThisMonth > nbrCompletedLastMonth}
-        content={nbrCompletedThisMonth > 0
-          ? " completed"
-          : "You have no completed bookings this month"}
+        title="Missed bookings"
+        num={nbrMissed}
+        positive={nbrMissed === 0}
+        content={nbrMissed === 0
+          ? "Yay you haven't missed any bookings"
+          : "Each missed booking is missed money!"}
       />
     </div>
-  </div>
-  <Chart data={chartData} type="line" />
+    <h3 class="chart-title">
+      {`Completed bookings of ${new Date().getFullYear()}`}
+    </h3>
+    <Chart data={chartData} type="line" />
+  {:else}
+    <h1>Fetching data please wait</h1>
+  {/if}
 </main>
 
 <style>
@@ -163,5 +194,15 @@
   .card-separator {
     display: block;
     width: 50%;
+  }
+
+  .important-card {
+    display: block;
+    width: 70%;
+    margin: 0 auto;
+  }
+
+  .chart-title {
+    text-align: center;
   }
 </style>

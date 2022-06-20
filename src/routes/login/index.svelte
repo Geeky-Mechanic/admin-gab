@@ -6,7 +6,8 @@
     let username = "";
     let password = "";
     let error;
-
+    const now = new Date();
+    const later = new Date(now).setMinutes(now.getMinutes() + 30).toString();
     const handleClick = async () => {
         $status.pending = true;
         $status.posted = false;
@@ -23,7 +24,8 @@
             $status.posted = true;
             $status.failed = false;
             const jsonRes = await res.json();
-            $credentials.accessToken = jsonRes.accessToken;
+            $credentials.accessToken = jsonRes;
+            sessionStorage.setItem("token" ,jsonRes);
             goto("/dashboard");
         } else {
             $status.pending = false;
