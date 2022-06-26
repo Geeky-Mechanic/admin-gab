@@ -14,6 +14,18 @@
   const completedId = "CompletedPageNbr";
   const missedId = "MissedPageNbr";
 
+  async function query (skipNum) {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}book/stats/past`, {
+      headers: {
+        "Content-Type": "application/json",
+        token: `Bearer ${sessionStorage.getItem("token")}`,
+        projection: JSON.stringify({}),
+        skip: skipNum,
+      },
+    });
+    return res;
+  };
+
   onMount(async () => {
     const res = await fetch(`${import.meta.env.VITE_API_URL}book/stats/past`, {
       headers: {
@@ -46,15 +58,9 @@
   const handlePageNavigate = async (e) => {
     const skipNum = (parseInt(e.target.value) - 1) * 10;
     const btnId = e.target.name;
+    console.log(skipNum);
+    const res = await query(skipNum);
 
-    const res = await fetch(`${import.meta.env.VITE_API_URL}book/stats/past`, {
-      headers: {
-        "Content-Type": "application/json",
-        token: `Bearer ${sessionStorage.getItem("token")}`,
-        projection: JSON.stringify({}),
-        skip: skipNum,
-      },
-    });
     if(res.status === 403 || res.status === 401){
       goto("/login");
     };
@@ -69,6 +75,7 @@
     }
  
   };
+
 </script>
 
 <main>

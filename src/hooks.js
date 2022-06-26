@@ -1,17 +1,10 @@
-/* import { get } from 'svelte/store';
-import { credentials } from './stores/login';
+import { verifyToken } from "./routes/api/verify";
+
 export async function handle({ event, resolve }) {
-    const headers = event.request.headers;
-    if (event.url.pathname !== ('/login')) {
-        const token = get(credentials.accessToken);
-        const res = await fetch(`${import.meta.env.VITE_API_URL}auth/verifytoken`, {
-            headers: {
-                'Content-Type': 'application/json',
-                token : `Bearer ${token}`,
-            },
-            method: "POST",
-        });
-        if (res.ok) {
+    const token = event.request.headers.get("cookie")?.split("=")[1];
+    if (event.url.pathname !== '/login' && event.url.pathname !== '/api/login') {
+        const valid = verifyToken(token);
+        if (valid) {
             const response = await resolve(event);
             return response;
         }else {
@@ -26,4 +19,4 @@ export async function handle({ event, resolve }) {
         const response = await resolve(event);
         return response;
     }
-}; */
+};

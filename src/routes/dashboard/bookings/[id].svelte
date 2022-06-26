@@ -62,7 +62,7 @@
                 token: `Bearer ${sessionStorage.getItem("token")}`,
             },
             method: "POST",
-            body: JSON.stringify({ id: _id }),
+            body: JSON.stringify({ id: _id, email }),
         });
         if (res.ok) {
             const data = await res.json();
@@ -81,7 +81,7 @@
                     token: `Bearer ${sessionStorage.getItem("token")}`,
                 },
                 method: "POST",
-                body: JSON.stringify({ id: _id }),
+                body: JSON.stringify({ id: _id, email }),
             }
         );
         if (res.ok) {

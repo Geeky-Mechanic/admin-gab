@@ -22,7 +22,6 @@
       },
     });
     const data = await res.json();
-
     if (
       res.status === 403 ||
       res.status === 401
@@ -93,16 +92,20 @@
 
   const handleConfirm = async (e) => {
     const id = e.target.id;
+    const current = upcomingBookings.find((b) => {
+      return b._id === id;
+    });
+    console.log(current.email);
     const res = await fetch(`${import.meta.env.VITE_API_URL}book/confirm`, {
       headers: {
         "Content-Type": "application/json",
         token: `Bearer ${sessionStorage.getItem("token")}`,
       },
       method: "POST",
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id, email: current.email }),
     });
     if (res.ok) {
-      const data = res.json();
+      const data = await res.json();
       const index = upcomingBookings.findIndex((b) => b._id === id );
       upcomingBookings[index].confirmed = true;
     } else {
@@ -134,7 +137,7 @@
 </script>
 
 <main>
-  {#if upcomingBookings && options && nbrOfUpcoming}
+  {#if upcomingBookings !== undefined && options && nbrOfUpcoming !== undefined}
   <div class="table">
     <TableColumn title="Name" cells={upcomingBookings.map((b) => b.name)} />
     <TableColumn
@@ -159,7 +162,7 @@
     <FullCalendar {options} />
   </div>
   {:else}
-  <h1>Fetching data, one moment please</h1>
+  <h1>Fetching data please wait</h1>
   {/if}
 </main>
 

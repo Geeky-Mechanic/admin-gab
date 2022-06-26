@@ -1,38 +1,38 @@
 <script>
     import Button from "$lib/Button.svelte";
-    import { status, credentials } from "../../stores/login";
     import { goto } from "$app/navigation";
 
     let username = "";
     let password = "";
-    let error;
+    let error = "Login has failed";
+    let status = {
+        pending: false,
+        posted: false,
+        failed: false
+    }
     const now = new Date();
     const later = new Date(now).setMinutes(now.getMinutes() + 30).toString();
     const handleClick = async () => {
-        $status.pending = true;
-        $status.posted = false;
-        $status.failed = false;
-        const res = await fetch(`${import.meta.env.VITE_API_URL}auth/login`, {
+        status.pending = true;
+        status.posted = false;
+        status.failed = false;
+        const res = await fetch(`/api/login`, {
             headers: {
                 "Content-Type": "application/json",
+                "accept": "application/json",
             },
             method: "POST",
             body: JSON.stringify({ username, password }),
         });
         if (res.ok) {
-            $status.pending = false;
-            $status.posted = true;
-            $status.failed = false;
-            const jsonRes = await res.json();
-            $credentials.accessToken = jsonRes;
-            sessionStorage.setItem("token" ,jsonRes);
+            status.pending = false;
+            status.posted = true;
+            status.failed = false;
             goto("/dashboard");
         } else {
-            $status.pending = false;
-            $status.posted = false;
-            $status.failed = true;
-            const jsonRes = await res.json();
-            error = jsonRes;
+            status.pending = false;
+            status.posted = false;
+            status.failed = true;
         }
     };
 </script>
@@ -56,9 +56,9 @@
         on:click={handleClick}
         content="LOGIN"
         primary
-        disabled={$status.pending || $status.posted || $status.failed}
+        disabled={status.pending || status.posted || status.failed}
     />
-    {#if $status.failed}
+    {#if status.failed}
         <p class="error">{error} refresh to try again</p>
     {/if}
 </main>
