@@ -1,13 +1,45 @@
+<script context="module">
+  export async function load({ fetch }) {
+    const res = await fetch(`/api/stats/past`, {
+      headers: {
+        "Content-Type": "application/json",
+        projection: JSON.stringify({}),
+      },
+    });
+      const bookData = await res.json();
+
+      const res2 = await fetch(
+        `/api/stats/number`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const numData = await res2.json();
+
+    if (res.ok && res2.ok) {
+      return {
+        props: {
+          bookData,
+          numData,
+        },
+      };
+    }
+  }
+</script>
+
 <script>
   import TableColumn from "$lib/TableColumn.svelte";
   import PageNbr from "$lib/PageNbr.svelte";
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
 
-  let completedBookings;
-  let missed;
-  let nbrMissed;
-  let nbrOfCompleted;
+  export let bookData;
+  export let numData;
+
+  let completedBookings = bookData.completedBookings;
+  let missed = bookData.missed;
+  let nbrMissed = numData.missed;
+  let nbrOfCompleted = numData.completedBookings;
   let completedCurrPage = 1;
   let missedCurrPage = 1;
 
@@ -15,10 +47,10 @@
   const missedId = "MissedPageNbr";
 
   async function query (skipNum) {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}book/stats/past`, {
+    console.log(skipNum);
+    const res = await fetch(`/api/stats/past`, {
       headers: {
         "Content-Type": "application/json",
-        token: `Bearer ${sessionStorage.getItem("token")}`,
         projection: JSON.stringify({}),
         skip: skipNum,
       },
@@ -26,45 +58,12 @@
     return res;
   };
 
-  onMount(async () => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}book/stats/past`, {
-      headers: {
-        "Content-Type": "application/json",
-        token: `Bearer ${sessionStorage.getItem("token")}`,
-        projection: JSON.stringify({}),
-      },
-    });
-    if (res.status === 401 || res.status === 403) {
-      goto("/login");
-    }
-      const data = await res.json();
-      completedBookings = data.completedBookings;
-      missed = data.missed;
-
-      const res2 = await fetch(
-        `${import.meta.env.VITE_API_URL}book/stats/number`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            token: `Bearer ${sessionStorage.getItem("token")}`,
-          },
-        }
-      );
-      const data2 = await res2.json();
-      nbrMissed = data2.missed;
-      nbrOfCompleted = data2.completedBookings;
-  });
-
   const handlePageNavigate = async (e) => {
     const skipNum = (parseInt(e.target.value) - 1) * 10;
     const btnId = e.target.name;
-    console.log(skipNum);
     const res = await query(skipNum);
-
-    if(res.status === 403 || res.status === 401){
-      goto("/login");
-    };
     const data = await res.json();
+    console.log(data);
     if(btnId === completedId){
       completedBookings = data.completedBookings;
       completedCurrPage = parseInt(e.target.value);
@@ -79,7 +78,6 @@
 </script>
 
 <main>
-  {#if completedBookings && missed && nbrMissed && nbrOfCompleted}
     <h2>Completed Bookings</h2>
     <div class="table">
       <TableColumn title="Name" cells={completedBookings.map((b) => b.name)} />
@@ -107,7 +105,7 @@
     </div>
     <PageNbr
       on:click={handlePageNavigate}
-      number={200}
+      number={nbrOfCompleted}
       id={completedId}
       currPage={completedCurrPage}
     />
@@ -133,9 +131,6 @@
     id={missedId}
     currPage={missedCurrPage}
   />
-  {:else}
-    <h1>Fetching Data please wait</h1>
-  {/if}
 </main>
 
 <style>

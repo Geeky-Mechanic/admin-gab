@@ -1,65 +1,38 @@
 <script context="module">
-    export async function load({ params }) {
+    export async function load({ fetch, params }) {
+        const res = await fetch(`/api/bookings/${params.id}`, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const resData = await res.json();
+
         return {
             props: {
-                id: params.id,
+                data: resData,
             },
         };
     }
 </script>
 
 <script>
-    import { onMount } from "svelte";
+    export let data;
 
-    export let id;
-
-    let _id;
-    let begHour;
-    let completed;
-    let confirmed;
-    let email;
-    let endHour;
-    let lastName;
-    let name;
-    let phoneNumber;
-
-
-
-    onMount(async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}book/${id}`, {
-            headers: {
-                "Content-Type": "application/json",
-                token: `Bearer ${sessionStorage.getItem("token")}`,
-            },
-        });
-        const resData = await res.json();
-        const data = resData;
-
-        _id = data._id;
-        begHour = data.begHour;
-        completed = data.completed;
-        confirmed = data.confirmed;
-        email = data.email;
-        endHour = data.endHour;
-        lastName = data.lastName;
-        name = data.name;
-        phoneNumber = data.phoneNumber;
-
-        if (resData.status === 403 || resData.status === 401) {
-            return new Response(null, {
-                status: 302,
-                headers: {
-                    location: "/login",
-                },
-            });
-        }
-    });
+    let _id = data._id;
+    let begHour = data.begHour;
+    let completed = data.completed;
+    let confirmed = data.confirmed;
+    let email = data.email;
+    let endHour = data.endHour;
+    let lastName = data.lastName;
+    let name = data.name;
+    let phoneNumber = data.phoneNumber;
 
     const handleConfirm = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}book/confirm`, {
+        const res = await fetch(`/api/bookings/confirm`, {
             headers: {
                 "Content-Type": "application/json",
-                token: `Bearer ${sessionStorage.getItem("token")}`,
             },
             method: "POST",
             body: JSON.stringify({ id: _id, email }),
@@ -74,11 +47,10 @@
 
     const handleCompleted = async () => {
         const res = await fetch(
-            `${import.meta.env.VITE_API_URL}book/completed`,
+            `/api/bookings/completed`,
             {
                 headers: {
                     "Content-Type": "application/json",
-                    token: `Bearer ${sessionStorage.getItem("token")}`,
                 },
                 method: "POST",
                 body: JSON.stringify({ id: _id, email }),

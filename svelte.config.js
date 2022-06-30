@@ -1,5 +1,5 @@
 import adapter from '@sveltejs/adapter-auto';
-
+import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
@@ -9,7 +9,8 @@ const config = {
 				dedupe: ['@fullcalendar/common']
 			},
 			optimizeDeps: {
-				include: ['@fullcalendar/common']
+				include: ['@fullcalendar/common'],
+				exclude: ['@sendgrid/mail'],
 			}
 		}
 	}

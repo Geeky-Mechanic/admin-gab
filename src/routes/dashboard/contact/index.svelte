@@ -1,23 +1,24 @@
+<script context="module">
+    export async function load({fetch}){
+        const res = await fetch(`/api/contact`, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        const data = await res.json();
+        return {
+            props: {
+                data,
+            }
+        }
+    }
+</script>
 <script>
-    import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import PageNbr from "$lib/PageNbr.svelte";
 
-    let data;
+    export let data;
     let currPage;
-
-    onMount(async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}contact`, {
-            headers: {
-                "Content-Type": "application/json",
-                token: `Bearer ${sessionStorage.getItem("token")}`,
-            },
-        });
-        if (res.status === 403 || res.status === 401) {
-            goto("/login");
-        }
-        data = await res.json();
-    });
 
     const handleClick = (e) => {
         goto(`/dashboard/contact/${e.target.value}`);
@@ -27,20 +28,14 @@
         const skipNum = (parseInt(e.target.value) - 1) * 10;
 
         const res = await fetch(
-            `${import.meta.env.VITE_API_URL}contact`,
+            `/api/contact`,
             {
                 headers: {
                     "Content-Type": "application/json",
-                    token: `Bearer ${sessionStorage.getItem("token")}`,
                     skip: skipNum,
                 },
             }
         );
-
-        if (res.status === 403 || res.status === 401) {
-            goto("/login");
-        }
-
         data = await res.json();
         currPage = parseInt(e.target.value);
     };
@@ -48,7 +43,6 @@
 
 <main>
     <h1>List of pending customer questions/complaints</h1>
-    {#if data}
         <div class="container">
             <div class="row">
                 <div class="cell title">Name</div>
@@ -86,10 +80,6 @@
             id={"contact"}
             {currPage}
         />
-
-    {:else}
-        <h1>Fetching data please wait</h1>
-    {/if}
 </main>
 
 <style>

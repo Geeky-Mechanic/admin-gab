@@ -1,10 +1,10 @@
 import { login } from './auth.js';
+import dotenv from "dotenv";
+dotenv.config();
 import mongoose from 'mongoose';
 
 export async function connect () {
-mongoose.connect(process.env.MONGO_URL)
-.then(() => console.log("Connected to DB"))
-.catch((err) => console.log(err));
+await mongoose.connect(process.env.MONGO_URL);
 };
 
 export async function auth(method, info) {

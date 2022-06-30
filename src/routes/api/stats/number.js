@@ -5,17 +5,16 @@ import {
     verifyToken
 } from "../verify";
 import Book from '../models/Book';
-
 export async function get(event) {
-    const token = event.request.headers.get("cookie").split("=")[1];
+    const token = event.request.headers.get("cookie")?.split("=")[1];
     const valid = verifyToken(token);
     if (valid) {
-        connect().then(() => {
+            await connect();
             try {
                 const bookings = async (query) => await Book.countDocuments(query);
 
                 //get the total number of completed bookings
-                const completedBookings = bookings({
+                const completedBookings = await bookings({
                     completed: true
                 });
 
@@ -23,7 +22,7 @@ export async function get(event) {
                 const lastMonthFirstDay = new Date().setUTCMonth(new Date().getUTCMonth() - 1, 1);
                 const lastMonthLastDay = new Date().setUTCDate(0);
 
-                const completedLastMonth = bookings({
+                const completedLastMonth = await bookings({
                     completed: true,
                     begHour: {
                         $gte: lastMonthFirstDay,
@@ -33,7 +32,7 @@ export async function get(event) {
 
                 //get the number of bookings which were done during this calendar month
                 const thisMonthFirstDay = new Date().setUTCDate(1);
-                const completedThisMonth = bookings({
+                const completedThisMonth = await bookings({
                     completed: true,
                     begHour: {
                         $gte: thisMonthFirstDay,
@@ -43,7 +42,7 @@ export async function get(event) {
                 const now = new Date().getTime();
 
                 //get number of bookings that were not completed
-                const missed = bookings({
+                const missed = await bookings({
                     completed: false,
                     begHour: {
                         $lte: now
@@ -51,14 +50,14 @@ export async function get(event) {
                 });
 
                 //get number of bookings that are coming
-                const upcomingBookings = bookings({
+                const upcomingBookings = await bookings({
                     begHour: {
                         $gte: now,
                     },
                 });
 
                 //get the number of upcoming bookings that still need confirmation
-                const unconfirmed = bookings({
+                const unconfirmed = await bookings({
                     begHour: {
                         $gte: now,
                     },
@@ -76,16 +75,22 @@ export async function get(event) {
                     },
                     status: 200,
                     headers: {
-                        "Content-Type": "application/json"
-                    }
+                        "Content-Type": "application/json",
+                    },
                 };
 
             } catch (err) {
                 return {
-                    body: err
+                    body: err,
                     status: 500
                 };
             };
-        });
-    };
+    }else {
+        return{
+            status: 302,
+            headers: {
+                location: "/login"
+            }
+        }
+    }
 };

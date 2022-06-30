@@ -15,7 +15,6 @@
     
     const calendarData = await calendarRes.json();
     const numData = await numRes.json();
-    console.log(calendarData, numData);
 
     if (numRes.ok && calendarRes.ok) {
       return {
@@ -33,32 +32,6 @@
   import InfoCard from "$lib/InfoCard.svelte";
   export let numData;
   export let calendarData;
-  
-/*   onMount(async() => {
-    const numRes = await fetch(`${import.meta.env.VITE_API_URL}book/stats/number`, {
-      headers: {
-        "Content-Type": "application/json",
-        token: `Bearer ${sessionStorage.getItem("token")}`,
-      },
-    });
-
-    const calendarRes = await fetch(`${import.meta.env.VITE_API_URL}book/stats/past`, {
-      headers: {
-        "Content-Type": "application/json",
-        token: `Bearer ${sessionStorage.getItem("token")}`,
-        projection : JSON.stringify({ begHour : 1, completed: 1 }),
-      },
-    });
-
-    if (numRes.status === 403 || numRes.status === 401 || calendarRes.status === 403 || calendarRes.status === 401) {
-      goto("/login");
-    }
-
-    else {
-      calendarData = await calendarRes.json();
-      numData = await numRes.json();
-    }
-  }); */
 
   const nbrOfCompleted = numData.completedBookings;
   const nbrUpcoming = numData.upcomingBookings;
@@ -82,22 +55,7 @@
     "Dec",
   ];
 
-/*   const currDate = new Date();
-  const currYear = currDate.getFullYear();
-  const currMonth = currDate.getMonth();
-
-  const ytdBookings = completedBookings.map((b) => {
-    const bDate = new Date(
-      b.begHour
-    ); // beginning date of each completed booking
-    const tDate = new Date(); // todays date 
-    if (bDate.getFullYear() === tDate.getFullYear()) {
-      // returns bookings between last year and this year 
-      return b.begHour;
-    }
-  }); */
-
-  const monthNumbers = calendarData.completedBookings.map((b, i) => {
+  const monthNumbers = calendarData.completedBookings?.map((b, i) => {
     const date = new Date(b.begHour);
     return date.getMonth();
   });

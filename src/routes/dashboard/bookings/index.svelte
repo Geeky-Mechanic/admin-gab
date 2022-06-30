@@ -1,3 +1,48 @@
+<script context="module">
+  export async function load({ fetch }) {
+    const res = await fetch(`/api/stats/future`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+    
+    const calendarRes = await fetch(
+      `/api/stats/future`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          projection: JSON.stringify({ begHour: 1, endHour: 1, name: 1 }),
+        },
+      }
+    );
+
+    const calendarData = await calendarRes.json();
+
+      /* ---->  Request Numbers  <---------------------------------- */
+  const numRes = await fetch(
+        `/api/stats/number`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const numData = await numRes.json();
+
+      if(res.ok && calendarRes.ok && numRes.ok){
+        return {
+          props: {
+            data,
+            calendarData,
+            numData,
+          },
+        };
+      };
+
+  };
+</script>
 <script>
   import FullCalendar from "svelte-fullcalendar";
   import daygridPlugin from "@fullcalendar/daygrid";
@@ -5,46 +50,14 @@
   import timegridPlugin from "@fullcalendar/timegrid";
   import TableColumn from "$lib/TableColumn.svelte";
   import PageNbr from "$lib/PageNbr.svelte";
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
 
-  let options;
-  let upcomingBookings;
-  let nbrOfUpcoming;
+  export let data;
+  export let calendarData;
+  export let numData;
+
+  let upcomingBookings = data.upcomingBookings;
+  let nbrOfUpcoming = numData.upcomingBookings;
   let currPage = 1;
-  
-  onMount(async () => {
-
-    const res = await fetch(`${import.meta.env.VITE_API_URL}book/stats/future`, {
-      headers: {
-        "Content-Type": "application/json",
-        token: `Bearer ${sessionStorage.getItem("token")}`,
-      },
-    });
-    const data = await res.json();
-    if (
-      res.status === 403 ||
-      res.status === 401
-    ) {
-      goto("/login");
-    }
-
-    upcomingBookings = data.upcomingBookings;
-
-      /* ---->  Full calendar section  <---------------------------------- */
-
-    const calendarRes = await fetch(
-      `${import.meta.env.VITE_API_URL}book/stats/future`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          token: `Bearer ${sessionStorage.getItem("token")}`,
-          projection: JSON.stringify({ begHour: 1, endHour: 1, name: 1 }),
-        },
-      }
-    );
-
-    const calendarData = await calendarRes.json();
 
   const calendarEvents = calendarData.upcomingBookings.map((b) => {
     return {
@@ -56,7 +69,7 @@
     }
   });
 
-    options = {
+    const options = {
     dateClick: (event) => alert("date click! " + event.dateStr),
     initialView: "dayGridMonth",
     plugins: [timegridPlugin, daygridPlugin, interactionPlugin],
@@ -69,37 +82,16 @@
     events: calendarEvents || [],
   };
 
-  /* ---->  Request Numbers  <---------------------------------- */
-  const res2 = await fetch(
-        `${import.meta.env.VITE_API_URL}book/stats/number`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            token: `Bearer ${sessionStorage.getItem("token")}`,
-          },
-        }
-      );
-      const data2 = await res2.json();
-      nbrOfUpcoming = data2.upcomingBookings;
-
-  });
-
   /* ---->  Confirm the booking  <---------------------------------- */
-
-
-
   //do something with res
-
   const handleConfirm = async (e) => {
     const id = e.target.id;
     const current = upcomingBookings.find((b) => {
       return b._id === id;
     });
-    console.log(current.email);
-    const res = await fetch(`${import.meta.env.VITE_API_URL}book/confirm`, {
+    const res = await fetch(`/api/bookings/confirm`, {
       headers: {
         "Content-Type": "application/json",
-        token: `Bearer ${sessionStorage.getItem("token")}`,
       },
       method: "POST",
       body: JSON.stringify({ id, email: current.email }),
@@ -118,26 +110,21 @@
     const btnId = e.target.name;
     console.log(skipNum, btnId);
     if(btnId === "UpcomingId"){
-     const res = await fetch(`${import.meta.env.VITE_API_URL}book/stats/future`, {
+     const res = await fetch(`/api/stats/future`, {
       headers: {
         "Content-Type": "application/json",
-        token: `Bearer ${sessionStorage.getItem("token")}`,
         projection: JSON.stringify({}),
         skip: skipNum,
       },
     });
-    if(res.status === 403 || res.status === 401){
-      goto("/login");
-    };
     const data = await res.json();
     upcomingBookings = data.upcomingBookings;
     currPage = parseInt(e.target.value);
-  }
+  };
   };
 </script>
 
 <main>
-  {#if upcomingBookings !== undefined && options && nbrOfUpcoming !== undefined}
   <div class="table">
     <TableColumn title="Name" cells={upcomingBookings.map((b) => b.name)} />
     <TableColumn
@@ -161,9 +148,6 @@
   <div class="calendar">
     <FullCalendar {options} />
   </div>
-  {:else}
-  <h1>Fetching data please wait</h1>
-  {/if}
 </main>
 
 <style>
