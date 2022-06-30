@@ -1,6 +1,4 @@
 import { login } from './auth.js';
-import dotenv from "dotenv";
-dotenv.config();
 import mongoose from 'mongoose';
 
 export async function connect () {

@@ -5,6 +5,7 @@ import {
     verifyToken
 } from "../verify";
 import Book from '../models/Book';
+
 export async function get(event) {
     const token = event.request.headers.get("cookie")?.split("=")[1];
     const valid = verifyToken(token);
