@@ -58,7 +58,7 @@
             }
         );
         if (res.ok) {
-            const data = await res.json();
+            const data = res;
             completed = data.completed;
         } else {
             console.log(res);
