@@ -18,7 +18,7 @@
 
 <script>
     export let data;
-
+    let error;
     let _id = data._id;
     let begHour = data.begHour;
     let completed = data.completed;
@@ -41,6 +41,7 @@
             const data = await res.json();
             confirmed = data.confirmed;
         } else {
+            error = await res.json();
             console.log(res);
         }
     };
@@ -66,6 +67,9 @@
 </script>
 
 <main>
+    {#if error}
+    {error}
+    {/if}
     <div class="line">
         <p>ID :</p>
         {_id}
