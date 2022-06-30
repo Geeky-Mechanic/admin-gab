@@ -1,55 +1,38 @@
 <script context="module">
-    export async function load({ params }) {
+    export async function load({ params, fetch }) {
+        const id = params.id;
+        const res = await fetch(`/api/contact/${id}`, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await res.json();
         return {
             props: {
-                id: params.id,
+                data,
             },
         };
     }
 </script>
 
 <script>
-    import { onMount } from "svelte";
-    import { goto } from "$app/navigation";
-    export let id;
+    export let data;
 
-    let _id;
-    let name;
-    let lName;
-    let date;
-    let subj;
-    let desc;
-    let email;
+    let _id = data._id;
+    let name = data.name;
+    let lName = data.lName;
+    let date = data.date;
+    let subj = data.subj;
+    let desc = data.desc;
+    let email = data.email;
 
     let text;
     let html;
     let sent;
     let error;
 
-    onMount(async () => {
-        const res = await fetch(
-            `${import.meta.env.VITE_API_URL}contact/${id}`,
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    token: `Bearer ${sessionStorage.getItem("token")}`,
-                },
-            }
-        );
-        if (res.status === 403 || res.status === 401) {
-            goto("/login");
-        };
-        const data = await res.json();
-        _id = data._id;
-        name = data.name;
-        lName = data.lName;
-        date = data.date;
-        subj = data.subj;
-        desc = data.desc;
-        email = data.email;
-    });
-
-    const handleSend = async (e)=> {
+    const handleSend = async (e) => {
         error = false;
         sent = false;
         const info = {
@@ -60,28 +43,21 @@
             html,
             _id,
         };
-        const res = await fetch(
-            `${import.meta.env.VITE_API_URL}contact/send`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    token: `Bearer ${sessionStorage.getItem("token")}`,
-                },
-                body: JSON.stringify(info)
-            }
-        );
-        if (res.status === 403 || res.status === 401) {
-            goto("/login");
-        };
-        if(res.status === 200){
+        const res = await fetch(`/api/contact/send`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(info),
+        });
+
+        if (res.status === 200) {
             sent = true;
-        };
-        if(res.status === 400){
+        }
+        if (res.status !== 200) {
             error = true;
         }
     };
-    $: console.log(html);
 </script>
 
 <main>
@@ -119,14 +95,28 @@
     <div class="form">
         <h2>Your response</h2>
         <label for="response">Enter your textual response</label>
-        <textarea name="response" id="response" cols="30" rows="10" bind:value={text}></textarea>
+        <textarea
+            name="response"
+            id="response"
+            cols="30"
+            rows="10"
+            bind:value={text}
+        />
 
-        <label for="response-html">Enter your response with some HTML for styling</label>
-        <textarea name="response-html" id="response-html" cols="30" rows="10" bind:value={html}></textarea>
+        <label for="response-html"
+            >Enter your response with some HTML for styling</label
+        >
+        <textarea
+            name="response-html"
+            id="response-html"
+            cols="30"
+            rows="10"
+            bind:value={html}
+        />
         <button on:click={handleSend}>SEND</button>
     </div>
     {#if sent}
-        <p class="positive">Response succesfully sent</p> 
+        <p class="positive">Response succesfully sent</p>
     {/if}
     {#if error}
         <p class="error">Something went wrong, please refresh and try again</p>
@@ -155,30 +145,29 @@
         margin: 10px 0;
     }
 
-    label{
-        margin:10px 0;
+    label {
+        margin: 10px 0;
     }
 
-    h2{
-        margin:10px 0;
+    h2 {
+        margin: 10px 0;
     }
 
     .line {
         margin: 20px 30px;
     }
 
-    .form{
+    .form {
         display: flex;
         flex-direction: column;
         width: 50%;
     }
 
-    .positive{
+    .positive {
         color: green;
     }
 
-    .error{
+    .error {
         color: red;
     }
-
 </style>
