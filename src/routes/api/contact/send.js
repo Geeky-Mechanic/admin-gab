@@ -5,11 +5,13 @@ import {
 import {
     verifyToken
 } from '../verify';
-import {
+import * as sgMail from '@sendgrid/mail';
+
+/* import {
     createRequire
 } from 'node:module';
 const require = createRequire(import.meta.url);
-const sgMail = require("@sendgrid/mail");
+const sgMail = require("@sendgrid/mail"); */
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 export async function post(event) {
