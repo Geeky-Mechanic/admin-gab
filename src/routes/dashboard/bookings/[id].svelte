@@ -38,8 +38,8 @@
             body: JSON.stringify({ id: _id, email }),
         });
         if (res.ok) {
-            const data = await res.json();
-            confirmed = data.confirmed;
+            const resdata = await res.json();
+            confirmed = true;
         } else {
             error = await res.json();
             console.log(res);
@@ -58,8 +58,7 @@
             }
         );
         if (res.ok) {
-            const data = res;
-            completed = data.completed;
+            completed = true;
         } else {
             console.log(res);
         }
