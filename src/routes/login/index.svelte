@@ -11,7 +11,6 @@
         failed: false
     }
     const now = new Date();
-    const later = new Date(now).setMinutes(now.getMinutes() + 30).toString();
     const handleClick = async () => {
         status.pending = true;
         status.posted = false;

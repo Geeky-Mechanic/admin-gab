@@ -48,7 +48,6 @@
   import daygridPlugin from "@fullcalendar/daygrid";
   import interactionPlugin from "@fullcalendar/interaction";
   import timegridPlugin from "@fullcalendar/timegrid";
-  import TableColumn from "$lib/TableColumn.svelte";
   import PageNbr from "$lib/PageNbr.svelte";
 
   export let data;
@@ -187,6 +186,7 @@
     align-self: stretch;
     text-align: center;
     display: inline;
+    box-sizing: border-box;
   }
 
   .cell:last-child {

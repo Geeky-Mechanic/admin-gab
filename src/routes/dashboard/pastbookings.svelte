@@ -129,6 +129,7 @@
 <style>
   main {
     flex: 5;
+    padding-bottom: 20px;
   }
   h2 {
     margin: 30px 0 0 20px;
