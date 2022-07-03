@@ -21,7 +21,7 @@ export async function post(event) {
         try {
         await connect();
         const req = await event.request.json();
-        const id = event.params.id;
+        const id = req._id;
         const subject = req.subj;
         const text = req.text;
         const to = req.email;
@@ -38,15 +38,19 @@ export async function post(event) {
             html,
         };
 
-        await sgMail.send(msg);
+        const sentMail = await sgMail.send(msg);
 
-        await Contact.findByIdAndUpdate(id, {
+        const updated = await Contact.findByIdAndUpdate(id, {
             answered: true,
         }, {
             new: true
         });
 
         return {
+            body: {
+                sentMail, 
+                updated
+            },
             status: 200,
             headers: {
                 "Content-Type": "application/json",
@@ -70,4 +74,4 @@ export async function post(event) {
             }
         }
     }
-}
+};

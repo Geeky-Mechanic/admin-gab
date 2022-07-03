@@ -41,14 +41,13 @@ export async function post(event) {
 
         await sgMail.send(msg);
 
-        const updated = await Book.findByIdAndUpdate(id, {
+        await Book.findByIdAndUpdate(id, {
             completed: true,
         }, {
             new: true,
         });
 
         return {
-            body: updated,
                 status: 200,
                 headers: {
                     "Content-Type": "application/json",

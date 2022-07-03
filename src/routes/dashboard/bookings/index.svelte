@@ -125,24 +125,31 @@
 </script>
 
 <main>
-  <div class="table">
-    <TableColumn title="Name" cells={upcomingBookings.map((b) => b.name)} />
-    <TableColumn
-      title="Last Name"
-      cells={upcomingBookings.map((b) => b.lastName)}
-    />
-    <TableColumn title="Email" cells={upcomingBookings.map((b) => b.email)} />
-    <TableColumn
-      title="Phone Number"
-      cells={upcomingBookings.map((b) => b.phoneNumber)}
-    />
-    <TableColumn title="Hour" cells={upcomingBookings.map((b) => b.begHour)} />
-    <TableColumn
-      id={upcomingBookings.map((b) => b._id)}
-      on:click={handleConfirm}
-      title="Confirm"
-      cells={upcomingBookings.map((b) => b.confirmed)}
-    />
+  <div class="container">
+    <div class="row">
+      <div class="cell title">Name</div>
+      <div class="cell title">Last Name</div>
+      <div class="cell title">Email</div>
+      <div class="cell title">Phone Number</div>
+      <div class="cell title">Hour</div>
+      <div class="cell title">Confirm</div>
+    </div>
+    {#each upcomingBookings as info}
+    <div class="row">
+      <div class="cell">{info.name}</div>
+      <div class="cell">{info.lastName}</div>
+      <div class="cell">{info.email}</div>
+      <div class="cell">{info.phoneNumber}</div>
+      <div class="cell">{new Date(info.begHour)}</div>
+      <div class="cell">
+        {#if info.confirmed}
+          Yes
+        {:else}
+          <button id={info._id} on:click={handleConfirm}>Click to confirm</button>
+        {/if}
+      </div>
+    </div>
+    {/each}
   </div>
   <PageNbr id="UpcomingId" {currPage} number={nbrOfUpcoming} on:click={handlePageNavigate} />
   <div class="calendar">
@@ -154,9 +161,49 @@
   main {
     flex: 5;
   }
-  .table {
-    display: flex;
-    margin: 10px 20px;
-    border: 1px lightgray solid;
+
+  .container {
+    width: 90%;
+    margin: 20px auto;
   }
+
+  .row {
+    display: flex;
+    border: 1px solid lightgray;
+    border-bottom: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .container > .row:last-child {
+    border-bottom: 1px solid lightgray;
+  }
+
+  .cell {
+    padding: 10px;
+    width: 100%;
+    flex: 1;
+    border-right: 1px solid lightgray;
+    align-self: stretch;
+    text-align: center;
+    display: inline;
+  }
+
+  .cell:last-child {
+    border-right: none;
+  }
+
+  .title {
+    font-weight: 600;
+    font-size: 1.2rem;
+  }
+
+  button{
+        padding: 5px;
+        border: none;
+        background-color: lightgreen;
+        border-radius: 5px;
+        color: white;
+        cursor: pointer;
+    }
 </style>

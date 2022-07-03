@@ -6,21 +6,26 @@
       },
     });
 
-    const calendarRes = await fetch(`/api/stats/past`, {
+    const numData = await numRes.json();
+    
+    const limit = numData.completedBookings >= numData.missed ? numData.completedBookings : numData.missed;
+    
+    const chartRes = await fetch(`/api/stats/past`, {
       headers: {
         "Content-Type": "application/json",
-        projection : JSON.stringify({ begHour : 1, completed: 1 }),
+        projection : JSON.stringify({ begHour : 1 }),
+        limit: limit,
       },
     });
     
-    const calendarData = await calendarRes.json();
-    const numData = await numRes.json();
+    const chartData = await chartRes.json();
+    
 
-    if (numRes.ok && calendarRes.ok) {
+    if (numRes.ok && chartRes.ok) {
       return {
         props: {
           numData,
-          calendarData,
+          chartData,
         },
       };
     }
@@ -31,7 +36,7 @@
   import Chart from "svelte-frappe-charts";
   import InfoCard from "$lib/InfoCard.svelte";
   export let numData;
-  export let calendarData;
+  export let chartData;
 
   const nbrOfCompleted = numData.completedBookings;
   const nbrUpcoming = numData.upcomingBookings;
@@ -55,7 +60,7 @@
     "Dec",
   ];
 
-  const monthNumbers = calendarData.completedBookings?.map((b, i) => {
+  const monthNumbers = chartData.completedBookings?.map((b, i) => {
     const date = new Date(b.begHour);
     return date.getMonth();
   });
@@ -72,12 +77,39 @@
       numPerMonth.push(lastIndex - firstIndex + 1);
     }
   };
-
-  let chartData = {
+  const missedNumPerMonth = [];
+  let completedChartData = {
     labels: months,
     datasets: [
       {
         values: numPerMonth,
+      },
+    ],
+  };
+
+  const missedMonthNumbers = chartData.missed?.map((b, i) => {
+    const date = new Date(b.begHour);
+    return date.getMonth();
+  });
+
+  missedMonthNumbers.sort((a, b) => a - b);
+  
+
+  for (let i = 0; i < 12; i++) {
+    const firstIndex = missedMonthNumbers.indexOf(i);
+    const lastIndex = missedMonthNumbers.lastIndexOf(i);
+    if (firstIndex === -1) {
+      missedNumPerMonth.push(0);
+    } else {
+      missedNumPerMonth.push(lastIndex - firstIndex + 1);
+    }
+  };
+
+  let missedChartData = {
+    labels: months,
+    datasets: [
+      {
+        values: missedNumPerMonth,
       },
     ],
   };
@@ -141,7 +173,9 @@
     />
   </div>
   <h3 class="chart-title">{`Completed bookings of ${new Date().getFullYear()}`}</h3>
-  <Chart data={chartData} type="line" /> 
+  <Chart data={completedChartData} type="line" /> 
+  <h3 class="chart-title">{`Missed bookings of ${new Date().getFullYear()}`}</h3>
+  <Chart data={missedChartData} type="line" />
 </main>
 
 <style>

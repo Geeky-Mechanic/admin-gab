@@ -15,15 +15,17 @@ export async function get(event) {
         //query projection to limit info
         const projection = event.request.headers.get("projection") ? JSON.parse(event.request.headers.get("projection")) : {};
         const skipNum = event.request.headers.get("skip") || 0;
-        const date = new Date().getTime();
+        const thisYear = new Date().setUTCFullYear(new Date().getUTCFullYear(), 0, 1);
+        let limit = event.request.headers.get("limit") ? JSON.parse(event.request.headers.get("limit")) : 10;
+
         const compBookings = await Book.find({
+            completed: true,
             begHour: {
-                $lte: date
+                $gte: thisYear,
             },
-            completed: true
         }).sort({
             begHour: -1
-        }).select(projection).skip(skipNum).limit(10);
+        }).select(projection).skip(skipNum).limit(limit);
 
         /*         const completedLastMonth = bookings.filter((b) => {
                     const begH = new Date(b.begHour);
@@ -40,13 +42,13 @@ export async function get(event) {
                 });  */
 
         const missedBookings = await Book.find({
+            completed: false,
             begHour: {
-                $lte: date
+                $gte: thisYear,
             },
-            completed: false
         }).sort({
             begHour: -1
-        }).select(projection).skip(skipNum).limit(10);
+        }).select(projection).skip(skipNum).limit(limit);
 
         return {
             body: {
