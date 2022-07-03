@@ -5,10 +5,13 @@ import {
 import {
     connect
 } from "../db";
-
-import { createRequire } from 'node:module';
-const require = createRequire(import.meta.url);
-const sgMail = require("@sendgrid/mail");
+import * as sgMail from '@sendgrid/mail';
+/* import {
+    createRequire
+} from 'node:module';
+const require = createRequire(
+    import.meta.url);
+const sgMail = require("@sendgrid/mail"); */
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 export async function post(event) {
@@ -52,7 +55,6 @@ export async function post(event) {
             };
 
         } catch (err) {
-            console.log(err);
             return {
                 body: err,
                 status: 500,

@@ -1,6 +1,9 @@
 import User from "./models/User.js";
 import jwt from 'jsonwebtoken';
 import { Decrypt } from './encryption';
+//remove for deployment
+import dotenv from 'dotenv';
+dotenv.config();
 
 export async function login(username, pass) {
     try{

@@ -16,7 +16,6 @@ export async function get(event) {
         const projection = event.request.headers.get("projection") ? JSON.parse(event.request.headers.get("projection")) : {};
         const skipNum = event.request.headers.get("skip") || 0;
         const date = new Date().getTime();
-        console.log(projection, skipNum);
         const compBookings = await Book.find({
             begHour: {
                 $lte: date

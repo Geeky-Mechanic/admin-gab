@@ -5,10 +5,13 @@ import {
 import {
     connect
 } from "../db";
+
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+console.log(import.meta.url);
 
 export async function post(event) {
     const token = event.request.headers.get("cookie")?.split("=")[1];
